@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="arp">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/release/arp.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
