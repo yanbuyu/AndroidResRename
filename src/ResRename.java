@@ -18,7 +18,8 @@ public class ResRename {
     public static ArrayList<String> nxhdpiList = new ArrayList<String>();//是否存在-nxhdpi
     public static ArrayList<String> hugeList = new ArrayList<String>();//是否存在huge
     public static ArrayList<String> godList = new ArrayList<String>();//是否存在god
-    //public static ArrayList<String> resOriginalDirNameList = new ArrayList<String>();//原版资源文件夹列表
+    public static ArrayList<String> resOriginalDirNameList = new ArrayList<String>();//原版资源文件夹列表
+    public static ArrayList<String> resOriginalFileNameList = new ArrayList<String>();//原版资源文件列表
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
@@ -40,10 +41,12 @@ public class ResRename {
                     continue;
                 if(z.getName().startsWith("res/")) {
                     String dirName = new File(z.getName()).getParent();
-                    //String baseName = new File(z.getName()).getName();
+                    String baseName = new File(z.getName()).getName();
                     map.put(z.getName(), z.getName());
-                    /*if (!resOriginalDirNameList.contains(dirName))
-                        resOriginalDirNameList.add(dirName);*/
+                    if (!resOriginalDirNameList.contains(dirName))
+                        resOriginalDirNameList.add(dirName);
+                    if (!resOriginalFileNameList.contains(baseName))
+                        resOriginalFileNameList.add(baseName);
                     if (dirName.contains("-nxhdpi"))
                         nxhdpiList.add(z.getName());
                     if (dirName.contains("-hugeui"))
@@ -60,6 +63,7 @@ public class ResRename {
     }
 
     private static void resrename(File originalApk, File buildApk, File outApk) throws Exception {
+        System.out.println("I: Using arr.jar...");
         //获取原版资源名称
         HashMap<String, String> originalResMap = getOriginalResNameFromZip(originalApk);
         //开始
@@ -93,7 +97,7 @@ public class ResRename {
                 throw new IOException("E: Read resources.arsc error");
             ArscFile arscFile = ArscFile.decodeArsc(new ByteArrayInputStream(data));
             //重命名res内文件
-            System.out.println("I: Starting resources rename...");
+            System.out.println("I: Starting rename resources...");
             for (int i = 0; i < arscFile.getStringSize(); i++) {
                 String s = arscFile.getString(i);//获取编译后app的资源路径
                 if (s.startsWith("res/") && map.containsKey(s)) {//检查是否为有效路径
@@ -158,10 +162,20 @@ public class ResRename {
                             d = new File(newName).getName();
                             newName = p.replace("-uiModeType=0", "-godzillaui") + "/" + d;//还原-uiModeType=0为原包的-godzillaui
                         }
-                        //退出循环
-                        if (isEquals) {
-                            break;
+                        //编译后apk的资源处理
+                        if (!resOriginalDirNameList.contains(new File(newName).getParent()) && !resOriginalFileNameList.contains(new File(newName).getName())) {
+                            for (String originalDirs : resOriginalDirNameList) {
+                                if (originalDirs.startsWith(new File(newName).getParent())) {
+                                    String oldString = newName;
+                                    newName = originalDirs + "/" + new File(oldString).getName();
+                                    System.out.println("I: Appending new resources " + oldString +  " to " + newName + "...");
+                                    break;
+                                }
+                            }
                         }
+                        //退出循环
+                        if (isEquals)
+                            break;
                     }
                     arscFile.setString(i, newName);
                     map.put(s, newName);
@@ -204,7 +218,7 @@ public class ResRename {
             fos.close();
             zos.close();
             zipFile.close();
-            System.out.println("I: Resources rename succeeded!");
+            System.out.println("I: Rename resources successfully!");
         } catch (Throwable e) {
             e.printStackTrace();
             try {
