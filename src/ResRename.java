@@ -18,6 +18,7 @@ public class ResRename {
     public static ArrayList<String> nxhdpiList = new ArrayList<String>();//是否存在-nxhdpi
     public static ArrayList<String> hugeList = new ArrayList<String>();//是否存在huge
     public static ArrayList<String> godList = new ArrayList<String>();//是否存在god
+    //public static ArrayList<String> resOriginalDirNameList = new ArrayList<String>();//原版资源文件夹列表
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
@@ -39,8 +40,10 @@ public class ResRename {
                     continue;
                 if(z.getName().startsWith("res/")) {
                     String dirName = new File(z.getName()).getParent();
-                    String baseName = new File(z.getName()).getName();
+                    //String baseName = new File(z.getName()).getName();
                     map.put(z.getName(), z.getName());
+                    /*if (!resOriginalDirNameList.contains(dirName))
+                        resOriginalDirNameList.add(dirName);*/
                     if (dirName.contains("-nxhdpi"))
                         nxhdpiList.add(z.getName());
                     if (dirName.contains("-hugeui"))
@@ -87,10 +90,10 @@ public class ResRename {
             while (start < data.length &&(len = is.read(data, start, data.length - start)) > 0)
                 start += len;
             if (start != data.length)
-                throw new IOException("Read resources.arsc error");
+                throw new IOException("E: Read resources.arsc error");
             ArscFile arscFile = ArscFile.decodeArsc(new ByteArrayInputStream(data));
             //重命名res内文件
-            System.out.println("I: starting rename resources...");
+            System.out.println("I: Starting resources rename...");
             for (int i = 0; i < arscFile.getStringSize(); i++) {
                 String s = arscFile.getString(i);//获取编译后app的资源路径
                 if (s.startsWith("res/") && map.containsKey(s)) {//检查是否为有效路径
@@ -100,8 +103,8 @@ public class ResRename {
                         String resOriginalDir = new File(resOriginalPath).getParent();//res/drawable-hdpi-v4
                         String resOriginalFile = new File(resOriginalPath).getName();
                         String version = "";
-                        String resNewName = "";
-                        String resNewName2 = "";
+                        String resNewName = new File(s).getParent();
+                        String resNewName2 = new File(s).getParent();
                         if (resOriginalDir.contains("-")) {
                             //System.out.println(resOriginalDir.split("-")[1]);
                             String[] splitStrings = resOriginalDir.split("-");
@@ -130,29 +133,33 @@ public class ResRename {
                                 resNewName = resNewDirName.replace("-godzillaui", "-uiModeType=0") + "/" + resNewFileName;
                             }
                         }
-                        if (resNewName.equals(s) || resNewName2.equals(s)) {
-                            //System.out.println(resOriginalPath);
-                            if (version.startsWith("v"))
-                                newName = resOriginalPath;
-                            //var
-                            String p;
-                            String d;
-                            //替换-440dpi为-nxhdpi
-                            if (nxhdpiList.size() != 0) {
-                                p = new File(newName).getParent();
-                                d = new File(newName).getName();
-                                newName = p.replace("-440dpi", "-nxhdpi") + "/" + d;//还原-440dpi为原包的-nxhdpi
-                            }
-                            //替换-uiModeType=0为-hugeui
-                            if (hugeList.size() != 0) {
-                                p = new File(newName).getParent();
-                                d = new File(newName).getName();
-                                newName = p.replace("-uiModeType=0", "-hugeui") + "/" + d;//还原-uiModeType=0为原包的-hugeui
-                            } else if (godList.size() != 0) {//替换-uiModeType=0为-godzillaui
-                                p = new File(newName).getParent();
-                                d = new File(newName).getName();
-                                newName = p.replace("-uiModeType=0", "-godzillaui") + "/" + d;//还原-uiModeType=0为原包的-godzillaui
-                            }
+                        //是否匹配
+                        boolean isEquals = false;
+                        if (resNewName.equals(s) || resNewName2.equals(s))
+                            isEquals = true;
+                        if (version.startsWith("v") && isEquals)
+                            newName = resOriginalPath;
+                        //var
+                        String p;
+                        String d;
+                        //替换-440dpi为-nxhdpi
+                        if (nxhdpiList.size() != 0) {
+                            p = new File(newName).getParent();
+                            d = new File(newName).getName();
+                            newName = p.replace("-440dpi", "-nxhdpi") + "/" + d;//还原-440dpi为原包的-nxhdpi
+                        }
+                        //替换-uiModeType=0为-hugeui
+                        if (hugeList.size() != 0) {
+                            p = new File(newName).getParent();
+                            d = new File(newName).getName();
+                            newName = p.replace("-uiModeType=0", "-hugeui") + "/" + d;//还原-uiModeType=0为原包的-hugeui
+                        } else if (godList.size() != 0) {//替换-uiModeType=0为-godzillaui
+                            p = new File(newName).getParent();
+                            d = new File(newName).getName();
+                            newName = p.replace("-uiModeType=0", "-godzillaui") + "/" + d;//还原-uiModeType=0为原包的-godzillaui
+                        }
+                        //退出循环
+                        if (isEquals) {
                             break;
                         }
                     }
@@ -197,7 +204,7 @@ public class ResRename {
             fos.close();
             zos.close();
             zipFile.close();
-            System.out.println("I: done!");
+            System.out.println("I: Resources rename succeeded!");
         } catch (Throwable e) {
             e.printStackTrace();
             try {
