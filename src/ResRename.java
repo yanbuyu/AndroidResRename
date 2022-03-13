@@ -108,13 +108,15 @@ public class ResRename {
                         String resOriginalFile = new File(resOriginalPath).getName();
                         String version = "";
                         String resNewName = new File(s).getParent();
-                        String resNewName2 = new File(s).getParent();
+                        //String resNewName2 = new File(s).getParent();
                         if (resOriginalDir.contains("-")) {
                             //System.out.println(resOriginalDir.split("-")[1]);
                             String[] splitStrings = resOriginalDir.split("-");
                             version = splitStrings[splitStrings.length - 1];//v4
                             resNewName = resOriginalDir.replace("-" + version, "") + "/" + resOriginalFile;//res/drawable-hdpi/xxx.png
-                            resNewName2 = resOriginalDir.split("-")[0] + "/" + resOriginalFile;//res/drawable/xxx.png
+                            /*resNewName2 = resOriginalDir.split("-")[0] + "/" + resOriginalFile;//res/drawable/xxx.png
+                            if (resOriginalDir.contains("-night"))//防止浅色模式和深色模式资源混淆
+                                resNewName2 = resOriginalDir.split("-")[0] + "-night" + "/" + resOriginalFile;//res/drawable/xxx.png*/
                         }
                         if (!resNewName.isEmpty()) {
                             String resNewDirName = new File(resNewName).getParent();
@@ -139,7 +141,7 @@ public class ResRename {
                         }
                         //是否匹配
                         boolean isEquals = false;
-                        if (resNewName.equals(s) || resNewName2.equals(s))
+                        if (resNewName.equals(s)/* || resNewName2.equals(s)*/)
                             isEquals = true;
                         if (version.startsWith("v") && isEquals)
                             newName = resOriginalPath;
