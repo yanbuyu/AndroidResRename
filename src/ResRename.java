@@ -170,7 +170,7 @@ public class ResRename {
                                 if (originalDirs.startsWith(new File(newName).getParent())) {
                                     String oldString = newName;
                                     newName = originalDirs + "/" + new File(oldString).getName();
-                                    System.out.println("I: Appending new resources " + oldString +  " to " + newName + "...");
+                                    System.out.println("I: Appending new resource " + oldString +  " to " + newName + "...");
                                     break;
                                 }
                             }
@@ -220,7 +220,7 @@ public class ResRename {
             fos.close();
             zos.close();
             zipFile.close();
-            System.out.println("I: Rename resources successfully!");
+            System.out.println("I: Renamed resources successfully!");
         } catch (Throwable e) {
             e.printStackTrace();
             try {
